@@ -48,3 +48,28 @@ class PICNN(nn.Module):
         y_component = self.decoder_y(x)
 
         return x_component, y_component
+
+    def physics_loss(self, u_pred, v_pred, u_gt, v_gt, rho=1.0, mu=1.0):
+        # Compute data loss
+        data_loss = nn.MSELoss()(u_pred, u_gt) + nn.MSELoss()(v_pred, v_gt)
+
+        # Compute physics residuals
+        u_x = torch.gradient(u_pred, dim=(2, 3))[0]
+        v_y = torch.gradient(v_pred, dim=(2, 3))[1]
+        R_c = u_x + v_y
+
+        u_t = torch.zeros_like(u_pred)  # Assuming steady-state
+        u_xx = torch.gradient(torch.gradient(u_pred, dim=3)[0], dim=3)[0]
+        u_yy = torch.gradient(torch.gradient(u_pred, dim=2)[0], dim=2)[0]
+        v_xx = torch.gradient(torch.gradient(v_pred, dim=3)[0], dim=3)[0]
+        v_yy = torch.gradient(torch.gradient(v_pred, dim=2)[0], dim=2)[0]
+        R_u = rho * (u_t + u_pred * u_x + v_pred * u_y) + torch.ones_like(u_pred) - mu * (u_xx + u_yy)
+        R_v = rho * (v_t + u_pred * v_x + v_pred * v_y) + torch.ones_like(v_pred) - mu * (v_xx + v_yy)
+
+        physics_residual = torch.mean(R_c ** 2 + R_u ** 2 + R_v ** 2)
+
+        alpha = 0.7 # Data loss weight
+        beta = 0.3 # Physics residual loss weight
+        loss = alpha * data_loss + beta * physics_residual
+
+        return loss

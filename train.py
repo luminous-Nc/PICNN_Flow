@@ -1,13 +1,12 @@
+# ECEN 689 Computer Project
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
-from model.new_model import PICNN
+from model.model import PICNN
 import matplotlib.pyplot as plt
 from LBMDataset import LBMDataset
-
 
 
 if __name__ == "__main__":
@@ -22,8 +21,8 @@ if __name__ == "__main__":
     model = PICNN().to(device)
 
     # Define the split indices for training and validation set
-    train_indices = list(range(1000))
-    valid_indices = list(range(1000, len(dataset)))
+    train_indices = list(range(4000))
+    valid_indices = list(range(4000, len(dataset)))
 
     # Define samplers for obtaining training and validation batches
     train_sampler = SubsetRandomSampler(train_indices)
@@ -33,8 +32,7 @@ if __name__ == "__main__":
     train_loader = DataLoader(dataset, batch_size=16, sampler=train_sampler)
     valid_loader = DataLoader(dataset, batch_size=16, sampler=valid_sampler)
 
-    # Define loss function and optimizer
-    criterion = nn.MSELoss()
+    # Define optimizer
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Training loop
@@ -54,7 +52,7 @@ if __name__ == "__main__":
             optimizer.zero_grad()
             output1, output2 = model(inputs)
 
-            loss = criterion(output1, targets_x) + criterion(output2, targets_y)
+            loss = model.physics_loss(output1,output2, targets_x,targets_y)
             loss.backward()
             optimizer.step()
 
@@ -70,7 +68,7 @@ if __name__ == "__main__":
                 inputs, targets_x, targets_y = inputs.to(device), targets_x.to(device), targets_y.to(
                     device)  # Move data to GPU
                 output1, output2 = model(inputs)
-                loss = criterion(output1, targets_x) + criterion(output2, targets_y)
+                loss = model.physics_loss(output1, output2, targets_x, targets_y)
                 valid_loss += loss.item() * inputs.size(0)
 
         valid_loss /= len(valid_indices)

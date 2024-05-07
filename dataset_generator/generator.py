@@ -126,13 +126,13 @@ def generate_lbm_image(image_number, point, vectorA, vectorB, Tf=100):
     u_x = sol.m[qx] / sol.m[rho]
 
     # 保存图像为PNG格式
-    plt.imsave(f'{image_number}_lbmx.png', np.flipud(u_x).transpose(), cmap='Greys', vmin=None, vmax=None,
+    plt.imsave(f'{image_number}_lbmx.png', np.flipud(u_x).transpose(), cmap='coolwarm', vmin=None, vmax=None,
                format='png')
 
     u_y = sol.m[qy] / sol.m[rho]
 
     # 保存图像为PNG格式
-    plt.imsave(f'{image_number}_lbmy.png', np.flipud(u_y).transpose(), cmap='Greys', vmin=None, vmax=None,
+    plt.imsave(f'{image_number}_lbmy.png', np.flipud(u_y).transpose(), cmap='coolwarm', vmin=None, vmax=None,
                format='png')
 
     print(f'{image_number} saved.')
