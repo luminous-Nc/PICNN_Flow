@@ -1,0 +1,6 @@
+dataset
+build
+.ipynb_checkpoints
+venv
+trained_model.pth
+.idea
